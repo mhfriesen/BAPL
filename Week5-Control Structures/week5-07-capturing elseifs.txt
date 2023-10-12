@@ -1,0 +1,37 @@
+nesting
+elifs-------
+{
+1 =   {				if c1
+  tag = 'number';
+  val = 1;  };
+2 =   {				then
+  tag = 'return';
+  expr =     {
+    tag = 'number';
+    val = 5;    };  };
+3 =   {				elseif c2
+  tag = 'number';
+  val = 0;  };
+4 =   {				then
+  tag = 'return';
+  expr =     {
+    tag = 'number';
+    val = 7;    };  };}
+else--------
+{				else
+tag = 'return';
+expr =   {
+  tag = 'number';
+  val = 99;  };}
+
+
+
+PROGRAM ----------------------------- 001 ------------------------------
+001 if 1 {
+002   return 5
+003 } elseif 0 {
+004     return 7
+005 } else {
+006   return 99
+007 }
+008 
