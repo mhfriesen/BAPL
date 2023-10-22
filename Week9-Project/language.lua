@@ -985,20 +985,6 @@ local grammar = P{"prog",
       end
     end
   * space ,
- 
- --[[       log("----func_capture fwd_funcs=", id,  pt.pt(fwd_funcs))
-        log("--fwd_funcs_body=", pt.pt(fwd_funcs_body),"\n")
-        if fwd_funcs[id] == nil then          
-          fwd_funcs[id] = 1
-        elseif fwd_funcs[id] == 1 and #fwd_funcs_body[id] == 0 then
-          if not syntaxErr then M.report_syntax_error(s, p, "function ".."'"..id.."' is already forward declared\n") end       
-          return false
-        elseif 2 < fwd_funcs[id]  then
-          if not syntaxErr then M.report_syntax_error(s, p, "function ".."'"..id.."' is already defined\n") end       
-          return false
-        else
-          fwd_funcs[id] = fwd_funcs[id] + 1
-]]
   
   func_capture = #(ID * space * T"(") *     -- is name 
     function(s,p) pp = p; return true end * -- matchtime save ID position in pp
@@ -1682,7 +1668,7 @@ local function run(code, mem, stack, top, options)
       pc = pc + 1
       local fname = code[pc]
       --log("executing library function " .. fname)
-      stack[top] = stack[top].size
+      stack[top] = stack[top].size --TOOO: build this out to linking to my builtin functions
     elseif code[pc] == "print" then 
       if not flag_print then -- newline first print instruction
         io.write("\n")
