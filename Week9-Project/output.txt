@@ -1,0 +1,1924 @@
+BAPL (Basically Another Programming Language) Martin Friesen 2023-10-20
+
+Tests after functions were introduced.
+
+PROGRAM ----------------------------- 136 ------------------------------
+001 #{
+002   where BAPL began with chapter 1-2 of PILua book Ex 2.1 ...
+003   enhanced with 'forward function declaration', 'unless', 'string interpolation', 
+004   and a royal athem
+005 }#
+006 
+007 function addqueen(rows_col, cur_row);
+008 
+009 function main () {
+010   var N = 8;
+011   print_first_soln_only = 1;
+012   isa_soln_printed = 0; # to stop after printing first solution
+013   var qs = new[N];
+014   addqueen(qs,1);
+015   return "God Save the Queen."
+016 }
+017 
+018 function isplaceok (rows_col, cur_row, col) {
+019   for row = 1, cur_row - 1 { # for each queen already placed
+020     var previous_queen_col = rows_col[row];
+021     if (previous_queen_col == col or                    # same column
+022        (previous_queen_col == col - cur_row + row) or   # same diagonal to left
+023        (previous_queen_col == col + cur_row - row) ) {  # same diagonal to right
+024         return 0
+025     }
+026   };
+027   return 1
+028 }
+029 
+030 function printsolution (rows_col) {
+031   var s = "\n";
+032   for row = 1, array.len(rows_col) {
+033     for col = 1, array.len(rows_col) {
+034       s = "{}{} "  <- s  <- (rows_col[row] == col and "X"  or  "_")
+035     };
+036     s = s | "\n"  
+037   };
+038   @ s
+039 }
+040 
+041 function addqueen(rows_col, cur_row) {
+042   if cur_row > array.len(rows_col) {
+043     printsolution(rows_col);
+044     isa_soln_printed = 1
+045   } else {
+046     for col = 1, array.len(rows_col) {
+047       if isplaceok(rows_col, cur_row, col) {
+048         rows_col[cur_row] = col;
+049         unless print_first_soln_only and isa_soln_printed {
+050           addqueen(rows_col, cur_row + 1)
+051         }
+052       }
+053     }
+054   }
+055 }
+
+
+printing: 
+X _ _ _ _ _ _ _ 
+_ _ _ _ X _ _ _ 
+_ _ _ _ _ _ _ X 
+_ _ _ _ _ X _ _ 
+_ _ X _ _ _ _ _ 
+_ _ _ _ _ _ X _ 
+_ X _ _ _ _ _ _ 
+_ _ _ X _ _ _ _ 
+
+
+--->God Save the Queen.
+
+
+PROGRAM ----------------------------- 135 ------------------------------
+001 # composable string concat, trim, substr, length, and find
+002 function main () {
+003   x = "bl" | "    string  " ~ 0:0 ~ 4:-1;
+004   @ x;                      # zone type used for ranges
+005   @ ~x;
+006   @ "in" ~ x; # find gives zone
+007   @ "string" ~ (("in" ~ x) + 1);
+008 }
+
+printing: bling
+printing: 5
+printing: 3:4
+printing: in
+
+--->0
+
+
+PROGRAM ----------------------------- 134 ------------------------------
+001 # the parser lowers for loops to while loops (i.e. no compiler or vm changes required)
+002 function main () {
+003   i = 42;
+004   for i = 1, 3 {      # positive direction
+005     @ i               # i is local
+006   };
+007   return i
+008 }
+
+printing: 1
+printing: 2
+printing: 3
+
+--->42
+
+
+PROGRAM ----------------------------- 133 ------------------------------
+001 function main () {
+002   var i = 42;
+003   for i = 3, 1, -1 {  # negative direction
+004     @ i
+005   };
+006   return i
+007 }
+
+printing: 3
+printing: 2
+printing: 1
+
+--->42
+
+
+PROGRAM ----------------------------- 132 ------------------------------
+001 function main () {
+002   var x = 2;
+003   var a = new[5];
+004   for i = 1 + 2!, 7 - x { # expressions
+005     a[i] = i:(i^2);
+006     if i == 3 {return "returning out of a for loop"}
+007   };
+008   return a
+009 }
+
+
+--->returning out of a for loop
+
+
+PROGRAM ----------------------------- 131 ------------------------------
+001 # swap using array destructuring
+002 function main () {
+003   a = new[2][3];
+004   a[1][1] = 10;
+005   a[1][2] = 20;
+006   @ a;
+007   a[1][2] , a[1][1] = a[1];  # swap in 2nd dim  
+008   return a
+009 }
+
+printing: {
+1 =   {
+  1 = 10;
+  2 = 20;
+  size = 3;  };
+2 =   {
+  size = 3;  };
+size = 2;}
+
+--->{
+1 =   {
+  1 = 20;
+  2 = 10;
+  size = 3;  };
+2 =   {
+  size = 3;  };
+size = 2;}
+
+
+PROGRAM ----------------------------- 130 ------------------------------
+001 # swap using array destructuring - nuances
+002 function main () {
+003   a = new[2][3];
+004   a[1][1] = 10;
+005   a[1][2] = 20;
+006   a[1][3] = 42;
+007   @ "{}\n" <- a;
+008   var a[1][2] , a[1][1], x = a[1];  # swap and var  
+009   @ x; 
+010   # x is a local
+011   # arrays remain whatever they were
+012   return a
+013 }
+
+printing: {
+1 =   {
+  1 = 10;
+  2 = 20;
+  3 = 42;
+  size = 3;  };
+2 =   {
+  size = 3;  };
+size = 2;}
+
+printing: 42
+
+--->{
+1 =   {
+  1 = 20;
+  2 = 10;
+  3 = 42;
+  size = 3;  };
+2 =   {
+  size = 3;  };
+size = 2;}
+
+
+PROGRAM ----------------------------- 129 ------------------------------
+001 function main () {
+002   outer = 99;
+003   {
+004     var a = new[];        # associative array
+005     for i = 1, 5 {
+006       a["k"|i] = i:(i^2)
+007     };
+008     x, outer, z = a;      # associative destructuring
+009     @ outer;
+010   };
+011   return outer
+012 }
+
+printing: 2:4.0
+
+--->2:4.0
+
+
+PROGRAM ----------------------------- 128 ------------------------------
+001 function main () {
+002   outer = 99;
+003   {
+004     var a = new[];        # associative array
+005     for i = 1, 5 {
+006       var b = new[];
+007       for j = 1, 3 {
+008         a["k"|i] = b;
+009         a["k"|i]["j"|j] = i:j
+010       };
+011     };
+012     @ a["k3"]["j2"];
+013     var x, outer, z = a["k3"]; # local associative destructuring
+014     @ outer;
+015   };
+016   return outer
+017 }
+
+printing: 3:2
+printing: 3:2
+
+--->99
+
+
+PROGRAM ----------------------------- 127 ------------------------------
+001 # prototypical for loops using while
+002 # 'and' is higher priority than 'or' so no parentheses needed
+003 function main () {
+004     var i = 6;
+005     var to = 0;
+006     var step = -2;
+007     while 0<step and i<=to or step<0 and to<=i { 
+008       @ i;
+009       i = i + step
+010   }
+011 }
+
+printing: 6
+printing: 4
+printing: 2
+printing: 0
+
+--->0
+
+
+PROGRAM ----------------------------- 126 ------------------------------
+001 function main () {
+002   {
+003     var i = 1;
+004     var to = 6;
+005     var step = 2;
+006     while 0<step and i<=to or step<0 and to<=i { 
+007       {@ i};
+008       i = i + step
+009     } 
+010   }
+011 }
+
+printing: 1
+printing: 3
+printing: 5
+
+--->0
+
+
+PROGRAM ----------------------------- 125 ------------------------------
+001 function main () {
+002   var i = -99;
+003   for i = 1, 6, 2 {
+004     @ i
+005   };
+006   return i
+007 }
+
+printing: 1
+printing: 3
+printing: 5
+
+--->-99
+
+
+PROGRAM ----------------------------- 124 ------------------------------
+001 function main () {
+002   var i = -99;
+003   for i = 6, 1, -2 {
+004     @ i
+005   };
+006   return i
+007 }
+
+printing: 6
+printing: 4
+printing: 2
+
+--->-99
+
+
+PROGRAM ----------------------------- 123 ------------------------------
+001 function main () {
+002   var n = 0;
+003   var i = 4; 
+004   while i {
+005     var j = 4;
+006     while j {
+007       j = j - 1;
+008       n = n + 1
+009     };
+010     i = i - 1
+011   };
+012 
+013   return n
+014 }
+
+
+--->16
+
+
+PROGRAM ----------------------------- 122 ------------------------------
+001 function main () {
+002   var N = 4;
+003   var a = new[N][N];
+004   var i = 1; 
+005   var n = 0; 
+006   while i <= N {
+007     var j = 1;
+008     while j <= N {
+009       a[i][j] = i * 10 + j;
+010       @ "a[{}][{}] = {}" <- i  <- j  <- a[i][j];
+011       j = j + 1;
+012       n = n + 1;
+013     };
+014     i = i + 1;
+015   };
+016   return n;
+017 }
+
+printing: a[1][1] = 11
+printing: a[1][2] = 12
+printing: a[1][3] = 13
+printing: a[1][4] = 14
+printing: a[2][1] = 21
+printing: a[2][2] = 22
+printing: a[2][3] = 23
+printing: a[2][4] = 24
+printing: a[3][1] = 31
+printing: a[3][2] = 32
+printing: a[3][3] = 33
+printing: a[3][4] = 34
+printing: a[4][1] = 41
+printing: a[4][2] = 42
+printing: a[4][3] = 43
+printing: a[4][4] = 44
+
+--->16
+
+
+PROGRAM ----------------------------- 121 ------------------------------
+001 # default parameters
+002 function fact(n, i = 35, c = 5 + 2, e = 0) {
+003   @ "ARGS: n={} i={} c={} e={}"  <- n  <- i  <- c <- e  ;
+004   if n {
+005     var e = i + c + e; # locals do not override unseen defaults
+006     @ "LOCS: n={} i={} c={} e={} NB: param e not modified, only shadowed"  <- n  <- i  <- c  <- e  ;
+007     return n * fact(n-1, 30, 12)
+008   } else {
+009     return 1
+010   }
+011 }
+012 
+013 function main() {
+014     return fact(6)
+015 }
+
+printing: ARGS: n=6 i=35 c=7 e=0
+printing: LOCS: n=6 i=35 c=7 e=42 NB: param e not modified, only shadowed
+printing: ARGS: n=5 i=30 c=12 e=0
+printing: LOCS: n=5 i=30 c=12 e=42 NB: param e not modified, only shadowed
+printing: ARGS: n=4 i=30 c=12 e=0
+printing: LOCS: n=4 i=30 c=12 e=42 NB: param e not modified, only shadowed
+printing: ARGS: n=3 i=30 c=12 e=0
+printing: LOCS: n=3 i=30 c=12 e=42 NB: param e not modified, only shadowed
+printing: ARGS: n=2 i=30 c=12 e=0
+printing: LOCS: n=2 i=30 c=12 e=42 NB: param e not modified, only shadowed
+printing: ARGS: n=1 i=30 c=12 e=0
+printing: LOCS: n=1 i=30 c=12 e=42 NB: param e not modified, only shadowed
+printing: ARGS: n=0 i=30 c=12 e=0
+
+--->720
+
+
+PROGRAM ----------------------------- 120 ------------------------------
+001 # so, now let's try some indirect recursion
+002 function foo(x);
+003 
+004 function bar(x) {
+005   if 42 < x {
+006     return foo(x)
+007   } else {
+008     return x
+009   }
+010 }
+011 
+012 function foo(x) {
+013   x = x - 1;
+014   return bar(x)
+015 }
+016 
+017 function main ( ) {
+018   return bar(45)
+019 }
+
+
+--->42
+
+
+PROGRAM ----------------------------- 119 ------------------------------
+001 function main() {
+002   s = 10;
+003   a = new[s][2];
+004   i = 1;
+005   @ "Let's have fun for a while!";
+006   while i <= s {
+007     a[i][1] = i!;
+008     a[i][2] = i^2;
+009     @ i | "! = " | a[i][1] | "    " | i | "^2 = " | a[i][2];
+010     i = i + 1
+011   };
+012   return "Yay"
+013 }
+
+printing: Let's have fun for a while!
+printing: 1! = 1    1^2 = 1.0
+printing: 2! = 2    2^2 = 4.0
+printing: 3! = 6    3^2 = 9.0
+printing: 4! = 24    4^2 = 16.0
+printing: 5! = 120    5^2 = 25.0
+printing: 6! = 720    6^2 = 36.0
+printing: 7! = 5040    7^2 = 49.0
+printing: 8! = 40320    8^2 = 64.0
+printing: 9! = 362880    9^2 = 81.0
+printing: 10! = 3628800    10^2 = 100.0
+
+--->Yay
+
+
+PROGRAM ----------------------------- 118 ------------------------------
+001 function main() {
+002   if 1 or 0 {
+003     @ "it's true"
+004   };
+005   unless not 1 or 0 {
+006     @ "unless it isn't"
+007   };
+008   return 7
+009 }
+
+printing: it's true
+printing: unless it isn't
+
+--->7
+
+
+PROGRAM ----------------------------- 117 ------------------------------
+001 #{
+002   Impact of a single new line in function tozone:
+003   t["size"] = 2 -- this attribute causes zone type to inherit
+004                 -- all the functionality of array type :)
+005 }#
+006 function main() {
+007   z = 3:9 + 1:-7;  
+008   @ z;
+009   @ "1 ---> {} {}"  <-  z[1]  <- z[2]; 
+010   @ "2 ---> {} {}"  <-  z; # but zone still has it's own tostring behavior
+011   a = new[2];
+012   a[1] = 4; a[2] = 2;
+013   @ "2.1 ---> {} {}"  <-  a; 
+014   x, y = z;
+015   @ "3 ---> {} {}"  <-  x <-  y; 
+016 }
+
+printing: 4:2
+printing: 1 ---> 4 2
+printing: 2 ---> 4:2 4:2
+printing: 2.1 ---> {
+1 = 4;
+2 = 2;
+size = 2;} {
+1 = 4;
+2 = 2;
+size = 2;}
+printing: 3 ---> 4 2
+
+--->0
+
+
+PROGRAM ----------------------------- 116 ------------------------------
+001 # associative arrays
+002 function main ( ) {
+003   a = new[];
+004   b = new[];
+005   a["foo"] = b;
+006   a["foo"]["bar"] = "is";
+007   @ "it {} what it {}"  <-  a["foo"]["bar"];
+008   
+009   a = new[];
+010   a["y"] = 2;
+011   a["x"] = 4;
+012   m, n = a;  # destructuring
+013   @ "{}{} since keys are sorted for interpolation"  <-  m  <-  n;
+014 }
+
+printing: it is what it is
+printing: 42 since keys are sorted for interpolation
+
+--->0
+
+
+PROGRAM ----------------------------- 115 ------------------------------
+001 # things are too structured
+002 function main() {
+003   a = new[3];
+004   a[1] = 5;
+005   a[2] = 6;
+006   a[3] = 7;
+007   
+008   x, y, z = a;   # so, we will now destructure them
+009   @ "{}, {}, and {}" <- x <- y <- z;
+010   
+011   @ "{}'s are literally polite"  <-  "{}";
+012   @ "strings { } can say \"no thankyou\""  <-  "surplus"  <- "exprs";
+013   @ "but they {} to be padded on the back {} this"  <-  "like";
+014   
+015   return x:y + z   # zone type still working
+016 }
+
+printing: 5, 6, and 7
+printing: {}'s are literally polite
+printing: strings { } can say "no thankyou"
+printing: but they like to be padded on the back like this
+
+--->12:13
+
+
+PROGRAM ----------------------------- 114 ------------------------------
+001 # six tests for short cct and and or
+002 function main() {
+003   @ 0 and 4 < 3;
+004   return 7
+005 }
+
+printing: 0
+
+--->7
+
+
+PROGRAM ----------------------------- 113 ------------------------------
+001 function main() {
+002   @ 1 and 4 < 3;
+003   return 7
+004 }
+
+printing: 0
+
+--->7
+
+
+PROGRAM ----------------------------- 112 ------------------------------
+001 function main() {
+002   @ 1 and 2 < 3;
+003   return 7
+004 }
+
+printing: 1
+
+--->7
+
+
+PROGRAM ----------------------------- 111 ------------------------------
+001 function main() {
+002   @ 0 or 4 < 3;
+003   return 7
+004 }
+
+printing: 0
+
+--->7
+
+
+PROGRAM ----------------------------- 110 ------------------------------
+001 function main() {
+002   @ 1 or 4 < 3;
+003   return 7
+004 }
+
+printing: 1
+
+--->7
+
+
+PROGRAM ----------------------------- 109 ------------------------------
+001 function main() {
+002   @ 1 or 2 < 3;
+003   return 7
+004 }
+
+printing: 1
+
+--->7
+
+
+PROGRAM ----------------------------- 108 ------------------------------
+001 function foo() {return 99}
+002 function main() {return foo()}
+
+
+--->99
+
+
+PROGRAM ----------------------------- 107 ------------------------------
+001 function foo();
+002 function foo() {return 99}
+003 function foo() {return 42}
+004 function main() {return foo()}
+
+
+
+SYNTAX ERROR (pos 55 of 100):
+003 function foo() {return 42}
+               ^
+function 'foo' has already been defined
+
+
+PROGRAM ----------------------------- 106 ------------------------------
+001 function foo() {return 42}
+002 function main() {return fo()}
+
+
+
+SYNTAX ERROR (pos 53 of 56):
+002 function main() {return fo()}
+                             ^
+function 'fo' hasn't been defined
+
+
+PROGRAM ----------------------------- 105 ------------------------------
+001 function foo();
+002 function main() {return foo()}
+
+
+--->0
+
+
+PROGRAM ----------------------------- 104 ------------------------------
+001 function inc() {return 42}
+002 function main() {return inc()}
+
+
+
+SYNTAX ERROR (pos 12 of 57):
+001 function inc() {return 42}
+               ^
+cannot use reserved word 'inc' as a function name
+
+
+PROGRAM ----------------------------- 103 ------------------------------
+001 function foo() {return 42}
+002 function main() {return foo}
+
+
+--->nil
+
+
+PROGRAM ----------------------------- 102 ------------------------------
+001 function main() {
+002   if 0 {
+003     @ 99
+004   } else {
+005     @ 999
+006   };
+007   return 7
+008 }
+
+printing: 999
+
+--->7
+
+
+PROGRAM ----------------------------- 101 ------------------------------
+001 function main() {
+002   if 1 {
+003     x = 1
+004   } else {
+005     x = 2
+006   };
+007   return 7
+008 }
+
+
+--->7
+
+
+PROGRAM ----------------------------- 100 ------------------------------
+001 function main() {
+002   if 2 < 1 {
+003     return 5
+004   } elseif 0 {
+005     return 7
+006   } elseif 0 {
+007     return 9
+008   } else {
+009     if 0 {return 99} elseif not 1 < 9 < 3 {return 999}
+010   };
+011   return "never this"
+012 }
+013 
+
+
+--->999
+
+
+PROGRAM ----------------------------- 099 ------------------------------
+001 # demo how inc does not modify variable like ++ in C++
+002 function main () {
+003   x = 1;
+004   return inc x + x;
+005 }
+
+
+--->3
+
+
+Mandelbrot using for loops and supressing print wrap.
+
+PROGRAM ----------------------------- 137 ------------------------------
+001 function main() {
+002   xmin = -2.0;
+003   xmax = 1.0;
+004   ymin = -1.5;
+005   ymax = 1.5;
+006   width = 80.0;
+007   height = 40.0;
+008   threshhold = 1000;
+009   deltax = (xmax - xmin) / width;
+010   deltay = (ymax - ymin) / height;
+011   _x = 0.0;
+012   _y = 0.0;
+013   tmp = 0.0;
+014   n = 0;
+015   inside = 0;
+016   for y = ymax, ymin, -deltay {
+017     x = xmin;
+018     for x = xmin, xmax, deltax {
+019       _x = 0.0;
+020       _y = 0.0;
+021       n = threshhold;
+022       inside = 1;
+023       while 0 < n {
+024         tmp = _x*_x - _y*_y + x;
+025         _y = 2.0*_x*_y + y;
+026         _x = tmp;
+027         n = n - 1;
+028         if ((_x*_x + _y*_y) > 4.0) {
+029           inside = 0;
+030           n = 0;
+031         };
+032       };
+033       @ inside and "#" or " ";
+034     };
+035     @ "\n"
+036   };
+037 }
+
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                 ###                            
+                                                #####                           
+                                                 ###                            
+                                       ##   #############                       
+                                        #######################                 
+                                       #######################                  
+                                     ##########################                 
+                                    ############################                
+                       ########    ##############################               
+                     ############ ##############################                
+                     ##########################################                 
+      #   #  ## #############################################                   
+                     ##########################################                 
+                     ############ ##############################                
+                       ########    ##############################               
+                                    ############################                
+                                     ##########################                 
+                                       #######################                  
+                                        #######################                 
+                                       ##   #############                       
+                                                 ###                            
+                                                #####                           
+                                                 ###                            
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--->0
+
+
+Tests after statements were introduced.
+
+PROGRAM ----------------------------- 098 ------------------------------
+001 function main() {
+002   x=1; y="s";
+003   @ ("Here are {} interpolation{} \n with {} expressions"  <-  12 / 3! + x  <-  y <- "v" | "arious") | ", and a bit more." 
+004   
+005 }
+
+printing: Here are 3.0 interpolations 
+ with various expressions, and a bit more.
+
+--->0
+
+
+PROGRAM ----------------------------- 097 ------------------------------
+001 function main() {
+002   @ "str"
+003 }
+
+printing: str
+
+--->0
+
+
+PROGRAM ----------------------------- 096 ------------------------------
+001 function main() {
+002   a = new[3];
+003   a[1] = a; #--- arrays that like themselves
+004   @ a
+005 }
+
+printing: {
+1 = ...;
+size = 3;}
+
+--->0
+
+
+PROGRAM ----------------------------- 095 ------------------------------
+001 function main() {
+002   a = new[3];
+003   b = new[2];
+004   a[2] = b; #--- arrays that like other arrays
+005   @ a
+006 }
+
+printing: {
+size = 3;
+2 =   {
+  size = 2;  };}
+
+--->0
+
+
+PROGRAM ----------------------------- 094 ------------------------------
+001 function main() {
+002   a = new[4][3];
+003   a[2][2] = 5;
+004   a = nil;  #--- garbage collection
+005   a[2][2] = 6;
+006   @ a
+007 }
+
+
+
+SYNTAX ERROR (pos 89 of 108):
+005   a[2][2] = 6;
+      ^
+array 'a' must be newed first
+
+
+PROGRAM ----------------------------- 093 ------------------------------
+001 function main() {
+002   x = 1;
+003   @ x;
+004   x = nil;
+005   @ x
+006 }
+
+
+
+SYNTAX ERROR (pos 50 of 52):
+005   @ x
+        ^
+variable 'x' does not exist
+
+
+PROGRAM ----------------------------- 092 ------------------------------
+001 function main() {
+002   a = new[4][3];
+003   b[3][5] = 9999;
+004   @ b
+005 }
+
+
+
+SYNTAX ERROR (pos 38 of 60):
+003   b[3][5] = 9999;
+      ^
+array 'b' must be newed first
+
+
+PROGRAM ----------------------------- 091 ------------------------------
+001 function main() {
+002   a = new[4][3];
+003   a[3][2] = 9999;
+004   @ a[3][2];
+005   a[2][3] = 99;
+006   return a[2][3] 
+007 }
+
+printing: 9999
+
+--->99
+
+
+PROGRAM ----------------------------- 090 ------------------------------
+001 function main() {
+002   a = new[4][3];
+003   a[3][3] = 9;
+004   @ "oooo... string type" | " so we can say we got to line " | (2 + 1);
+005   a[3][5] = 9999;
+006   @ "wish we got this far"
+007 }
+
+printing: oooo... string type so we can say we got to line 3
+RUNTIME ERROR: setarray out of bounds: index = 5,  bounds = 1 to 3
+
+--->{
+size = 3;
+3 = 9;}
+
+
+PROGRAM ----------------------------- 089 ------------------------------
+001 function main() {
+002   @ "mind those runtime errors" | 2 + 1
+003 }
+
+printing: mind those runtime errors3
+
+--->0
+
+
+PROGRAM ----------------------------- 088 ------------------------------
+001 function main() {
+002   a = new[4][3];
+003   @ "got here";
+004   @ a[3][5];
+005   @ "but not here, so go figure"
+006 }
+
+printing: got here
+RUNTIME ERROR: getarray out of bounds: index = 5,  bounds = 1 to 3
+
+--->{
+size = 3;}
+
+
+PROGRAM ----------------------------- 087 ------------------------------
+001 function main() {
+002   s= 3;
+003   a = new[(s+1)/2+1][s-1];
+004   a[2][1] = 999999;
+005   return a
+006 }
+
+
+--->{
+1 =   {
+  size = 2;  };
+2 =   {
+  1 = 999999;
+  size = 2;  };
+3 =   {
+  size = 2;  };
+size = 3.0;}
+
+
+PROGRAM ----------------------------- 086 ------------------------------
+001 function main() {
+002   a = new[10];
+003   a[9] = 4;
+004   a[10] = a[9];
+005   @ a[10];
+006   @ a;
+007   return a
+008 }
+
+printing: 4
+printing: {
+size = 10;
+10 = 4;
+9 = 4;}
+
+--->{
+size = 10;
+10 = 4;
+9 = 4;}
+
+
+PROGRAM ----------------------------- 085 ------------------------------
+001 function main() {
+002   x=1+inc[3]; return x
+003 }
+
+
+
+SYNTAX ERROR (pos 27 of 42):
+002   x=1+inc[3]; return x
+            ^
+array 'inc' does not exist (must be newed first)
+could not redefine the reserved word 'inc' anyway
+
+
+PROGRAM ----------------------------- 084 ------------------------------
+001 function main() {
+002   x=1+inc 4; return x
+003 }
+
+
+--->6
+
+
+PROGRAM ----------------------------- 083 ------------------------------
+001 function main() {
+002   return a
+003 }
+
+
+
+SYNTAX ERROR (pos 28 of 30):
+002   return a
+             ^
+variable 'a' does not exist
+
+
+PROGRAM ----------------------------- 082 ------------------------------
+001 function main() {
+002   return "abc" 
+003 }
+
+
+--->abc
+
+
+PROGRAM ----------------------------- 081 ------------------------------
+001 function main() {
+002   return not 1 < 8 < 4
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 080 ------------------------------
+001 function main() {
+002   return not 1 < 8 < 4!
+003 }
+
+
+--->0
+
+
+PROGRAM ----------------------------- 079 ------------------------------
+001 function main() {
+002   return 2-2 and 5-3 or 4+1
+003 }
+
+
+--->5
+
+
+PROGRAM ----------------------------- 078 ------------------------------
+001 function main() {
+002   return not 1 or 3 and 5
+003 }
+
+
+--->5
+
+
+PROGRAM ----------------------------- 077 ------------------------------
+001 function main() {
+002   return 1! and 0 or 7
+003 }
+
+
+--->7
+
+
+PROGRAM ----------------------------- 076 ------------------------------
+001 function main() {
+002   if 0 {
+003     return 5
+004   } elseif 0 {
+005     return 7
+006   } elseif 0 {
+007     return 9
+008   } else {
+009     return 999
+010   }
+011 }
+
+
+--->999
+
+
+PROGRAM ----------------------------- 075 ------------------------------
+001 function main() {
+002   if 2 < 1 {
+003     return 5
+004   } elseif 0 {
+005     return 7
+006   } elseif 0 {
+007     return 9
+008   } else {
+009     if 0 {return 99} elseif not 3 < 2 {return 999}
+010   }
+011 }
+
+
+--->999
+
+
+PROGRAM ----------------------------- 074 ------------------------------
+001 function main() {
+002   if 2 < 1 {
+003     return 5
+004   } elseif 0 {
+005     return 7
+006   } elseif 0 {
+007     return 9
+008   } else {
+009     if 0 {return 99} elseif not (1 < 9 < 3) {return 999}
+010   }
+011 }
+
+
+--->999
+
+
+PROGRAM ----------------------------- 073 ------------------------------
+001 function main() {
+002   if 2 < 1 {
+003     return 5
+004   } elseif 0 {
+005     return 7
+006   } elseif 0 {
+007     return 9
+008   } else {
+009     if 0 {return 99} elseif not 1 < 9 < 3 {return 999}
+010   }
+011 }
+
+
+--->999
+
+
+PROGRAM ----------------------------- 072 ------------------------------
+001 function main() {
+002   if 0 {
+003     return 5
+004   } elseif 1 < 3 < 5 {
+005     return 7
+006   } elseif 0 {
+007     return 99
+008   }             # no else
+009 }
+
+
+--->7
+
+
+PROGRAM ----------------------------- 071 ------------------------------
+001 function main() {
+002   if 0 {
+003     return 5
+004   } elseif 0 {
+005       return 7
+006   } elseif 0 {
+007       return 99
+008   }             # no else
+009 }
+
+
+--->0
+
+
+PROGRAM ----------------------------- 070 ------------------------------
+001 function main() {
+002   if 0 {
+003     return 5
+004   } else {
+005     if 0 {
+006       return 7
+007     } else {
+008       return 99
+009     }
+010   }
+011 }
+
+
+--->99
+
+
+PROGRAM ----------------------------- 069 ------------------------------
+001 function main() {
+002   x = 1 < 5 < 4;  # oooo... mathematical relations
+003   y = 1 < 4 <= 4;
+004   return x:y  # zone type used for multiple return values
+005 }
+
+
+--->0:1
+
+
+PROGRAM ----------------------------- 068 ------------------------------
+001 function main() {
+002   x = 5;
+003   return 1 < x < 4 < 7
+004 }
+
+
+
+SYNTAX ERROR (pos 48 of 51):
+003   return 1 < x < 4 < 7
+                        ^
+mathematical relations: only 2 relations allowed
+
+PROGRAM ----------------------------- 067 ------------------------------
+001 function main() {
+002   return x = 1 < 5 < 4
+003 }
+
+
+
+SYNTAX ERROR (pos 28 of 42):
+002   return x = 1 < 5 < 4
+             ^
+variable 'x' does not exist
+
+
+PROGRAM ----------------------------- 066 ------------------------------
+001 function main() {
+002   {;; }; 
+003   { ;         # empty statements galore!!
+004     x = 3;;;;
+005     y; = 1:2; # but, this is not an empty statement
+006   }; 
+007   return x+y
+008 }
+
+
+
+SYNTAX ERROR (pos 89 of 156):
+005     y; = 1:2; # but, this is not an empty statement
+        ^
+
+
+PROGRAM ----------------------------- 065 ------------------------------
+001 function main() {
+002   x = - inc -4; return x
+003 }
+
+
+--->3
+
+
+PROGRAM ----------------------------- 064 ------------------------------
+001 function main() {
+002   #{my block comment #{ with a nested block comment # just a comment too
+003     here }# and rest of comment } # return 1;
+004 }
+
+
+
+SYNTAX ERROR (pos 137 of 138):
+004 }
+   ^
+block comment closing '}#' not found
+
+
+PROGRAM ----------------------------- 063 ------------------------------
+001 function main() {
+002   return y
+003 }
+
+
+
+SYNTAX ERROR (pos 28 of 30):
+002   return y
+             ^
+variable 'y' does not exist
+
+
+PROGRAM ----------------------------- 062 ------------------------------
+001 function main() {
+002   de =dec dec 1; return de #----- unary ops
+003 }
+
+
+--->-1
+
+
+PROGRAM ----------------------------- 061 ------------------------------
+001 function main() {
+002   de =-dec dec 1; return de
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 060 ------------------------------
+001 function main() {
+002   de =dec -dec 1; return de
+003 }
+
+
+--->-1
+
+
+PROGRAM ----------------------------- 059 ------------------------------
+001 function main() {
+002   de =dec - dec 1; return de
+003 }
+
+
+--->-1
+
+
+PROGRAM ----------------------------- 058 ------------------------------
+001 function main() {
+002   de =dec dec 1; return = de
+003 }
+
+
+
+SYNTAX ERROR (pos 41 of 48):
+002   de =dec dec 1; return = de
+                          ^
+cannot assign to reserved word 'return'
+
+
+PROGRAM ----------------------------- 057 ------------------------------
+001 function main() {
+002   # the next three lines are fine
+003   x = 1; #{ this, but not the # embedded comments
+004   is a block comment spanning #{nesting allowed of course} #, multiple lines }#
+005   @ (x -3<2);   
+006   @ ((not 3<-1);  # but this line has a syntax error
+007   return y
+008   
+009 }
+
+
+
+SYNTAX ERROR (pos 266 of 267):
+009 }
+   ^
+block comment closing '}#' not found
+
+
+PROGRAM ----------------------------- 056 ------------------------------
+001 function main() {
+002   x=1:3; 
+003   y=dec 2; 
+004   z= inc 4; 
+005   @ (x+7); # should print 8:10
+006   @ 2<3; 
+007   @ not (2<3); 
+008   return -x + y+z
+009   
+010 }
+
+printing: 8:10
+printing: 1
+printing: 0
+
+--->3:5
+
+
+PROGRAM ----------------------------- 055 ------------------------------
+001 function main() {
+002   x = y!; return x
+003 }
+
+
+
+SYNTAX ERROR (pos 25 of 38):
+002   x = y!; return x
+          ^
+variable 'y' does not exist
+
+
+Tests when just expressions were available.
+
+PROGRAM ----------------------------- 053 ------------------------------
+001 function main() {
+002     return 2^3^2
+003 }
+
+
+--->512.0
+
+
+PROGRAM ----------------------------- 052 ------------------------------
+001 function main() {
+002     return -5-1
+003 }
+
+
+--->-6
+
+
+PROGRAM ----------------------------- 051 ------------------------------
+001 function main() {
+002     return 5-1
+003 }
+
+
+--->4
+
+
+PROGRAM ----------------------------- 050 ------------------------------
+001 function main() {
+002     return 5 - - -1
+003 }
+
+
+--->4
+
+
+PROGRAM ----------------------------- 049 ------------------------------
+001 function main() {
+002     return 1- -3
+003 }
+
+
+--->4
+
+
+PROGRAM ----------------------------- 048 ------------------------------
+001 function main() {
+002     return -(-1)
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 047 ------------------------------
+001 function main() {
+002     return --1
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 046 ------------------------------
+001 function main() {
+002     return 0x02c + 0X03
+003 }
+
+
+--->47
+
+
+PROGRAM ----------------------------- 045 ------------------------------
+001 function main() {
+002     return 0x02 + 0X03
+003 }
+
+
+--->5
+
+
+PROGRAM ----------------------------- 044 ------------------------------
+001 function main() {
+002     return -0X02:0xff + 2e10-2e1
+003 }
+
+
+--->19999999978.0:20000000235.0
+
+
+PROGRAM ----------------------------- 043 ------------------------------
+001 function main() {
+002     return -(-.1:0.2  - -0.2:.3)
+003 }
+
+
+--->0.1:-0.1
+
+
+PROGRAM ----------------------------- 042 ------------------------------
+001 function main() {
+002     return -.1:0.2  - -0.2:.3
+003 }
+
+
+--->0.1:-0.1
+
+
+PROGRAM ----------------------------- 041 ------------------------------
+001 function main() {
+002     return -0X02| 15
+003 }
+
+
+--->-215
+
+
+PROGRAM ----------------------------- 040 ------------------------------
+001 function main() {
+002     return 2| 15
+003 }
+
+
+--->215
+
+
+PROGRAM ----------------------------- 039 ------------------------------
+001 function main() {
+002     return 2:3|5:8
+003 }
+
+
+--->2:35:8
+
+
+PROGRAM ----------------------------- 038 ------------------------------
+001 function main() {
+002     return 2:3-(2-4):3
+003 }
+
+
+--->4:0
+
+
+PROGRAM ----------------------------- 037 ------------------------------
+001 function main() {
+002     return 2:3- -2:3
+003 }
+
+
+--->4:0
+
+
+PROGRAM ----------------------------- 036 ------------------------------
+001 function main() {
+002     return 2:3-2:3
+003 }
+
+
+--->0:0
+
+
+PROGRAM ----------------------------- 035 ------------------------------
+001 function main() {
+002     return -1:(2^2) - (3!):5
+003 }
+
+
+--->-7:-1.0
+
+
+PROGRAM ----------------------------- 034 ------------------------------
+001 function main() {
+002     return 2 - -5
+003 }
+
+
+--->7
+
+
+PROGRAM ----------------------------- 033 ------------------------------
+001 function main() {
+002     return 2-5
+003 }
+
+
+--->-3
+
+
+PROGRAM ----------------------------- 032 ------------------------------
+001 function main() {
+002     return 2 - 5
+003 }
+
+
+--->-3
+
+
+PROGRAM ----------------------------- 031 ------------------------------
+001 function main() {
+002     return 10:20 ==10:5
+003 }
+
+
+--->0
+
+
+PROGRAM ----------------------------- 030 ------------------------------
+001 function main() {
+002     return 10:20 ==10:20
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 029 ------------------------------
+001 function main() {
+002     return -10:20>=-5:30
+003 }
+
+
+--->0
+
+
+PROGRAM ----------------------------- 028 ------------------------------
+001 function main() {
+002     return -10:20 <=-5:30
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 027 ------------------------------
+001 function main() {
+002     return -10:20 <-5:30
+003 }
+
+
+
+SYNTAX ERROR (pos 36 of 44):
+002     return -10:20 <-5:30
+                     ^
+
+
+PROGRAM ----------------------------- 026 ------------------------------
+001 function main() {
+002     return -10:20 + 5
+003 }
+
+
+--->-5:25
+
+
+PROGRAM ----------------------------- 025 ------------------------------
+001 function main() {
+002     return 10:(20 + 5)
+003 }
+
+
+--->10:25
+
+
+PROGRAM ----------------------------- 024 ------------------------------
+001 function main() {
+002     return 10:20 + 5
+003 }
+
+
+--->15:25
+
+
+PROGRAM ----------------------------- 023 ------------------------------
+001 function main() {
+002     return 10~=11
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 022 ------------------------------
+001 function main() {
+002     return 10~=10
+003 }
+
+
+--->0
+
+
+PROGRAM ----------------------------- 021 ------------------------------
+001 function main() {
+002     return 10>=20
+003 }
+
+
+--->0
+
+
+PROGRAM ----------------------------- 020 ------------------------------
+001 function main() {
+002     return 10<=20
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 019 ------------------------------
+001 function main() {
+002     return 10==10
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 018 ------------------------------
+001 function main() {
+002     return 10>20
+003 }
+
+
+--->0
+
+
+PROGRAM ----------------------------- 017 ------------------------------
+001 function main() {
+002     return 10<20
+003 }
+
+
+--->1
+
+
+PROGRAM ----------------------------- 016 ------------------------------
+001 function main() {
+002     return 518400.0
+003 }
+
+
+--->518400.0
+
+
+PROGRAM ----------------------------- 015 ------------------------------
+001 function main() {
+002     return -(-3)!! ^2
+003 }
+
+
+--->518400.0
+
+
+PROGRAM ----------------------------- 014 ------------------------------
+001 function main() {
+002     return -(-3)! ^2
+003 }
+
+
+--->36.0
+
+
+PROGRAM ----------------------------- 013 ------------------------------
+001 function main() {
+002     return -(-3)! +2
+003 }
+
+
+--->8
+
+
+PROGRAM ----------------------------- 012 ------------------------------
+001 function main() {
+002     return -(-3)! 
+003 }
+
+
+--->6
+
+
+PROGRAM ----------------------------- 011 ------------------------------
+001 function main() {
+002     return -3
+003 }
+
+
+--->-3
+
+
+PROGRAM ----------------------------- 010 ------------------------------
+001 function main() {
+002     return 6
+003 }
+
+
+--->6
+
+
+PROGRAM ----------------------------- 009 ------------------------------
+001 function main() {
+002     return 3!
+003 }
+
+
+--->6
+
+
+PROGRAM ----------------------------- 008 ------------------------------
+001 function main() {
+002     return 7
+003 }
+
+
+--->7
+
+
+PROGRAM ----------------------------- 007 ------------------------------
+001 function main() {
+002     return (0x02+5)
+003 }
+
+
+--->7
+
+
+PROGRAM ----------------------------- 006 ------------------------------
+001 function main() {
+002     return 4096.0
+003 }
+
+
+--->4096.0
+
+
+PROGRAM ----------------------------- 005 ------------------------------
+001 function main() {
+002     return 2.^(3 * 4)
+003 }
+
+
+--->4096.0
+
+
+PROGRAM ----------------------------- 004 ------------------------------
+001 function main() {
+002     return 16
+003 }
+
+
+--->16
+
+
+PROGRAM ----------------------------- 003 ------------------------------
+001 function main() {
+002     return 2^3 * 0x02
+003 }
+
+
+--->16.0
+
+
+PROGRAM ----------------------------- 002 ------------------------------
+001 function main() {
+002     return 3
+003 }
+
+
+--->3
+
+
+PROGRAM ----------------------------- 001 ------------------------------
+001 function main() {
+002     return 11 %4
+003 }
+
+
+--->3
+
