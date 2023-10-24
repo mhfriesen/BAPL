@@ -692,7 +692,7 @@ The following references highlight, in roughly chronological order, influences o
     * Except for in SAS, I haven't seen the kinds of things UPRINT could do, I may re-implement UPRINT using the knowledge and tools gained here.
         * [PROC PRINT](https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/proc/p10qiuo2yicr4qn17rav8kptnjpu.htm)
     * And here is a pleasant surprise ...
-        * [LUA as SAS Macro Language](https://support.sas.com/resources/papers/proceedings17/SAS0212-2017.pdf)
+        * [LUA as SAS Macro Language](https://support.sas.com/resources/papers/proceedings17/SAS0212-2017.pdf)  
         * What a confirmation of Lua. SAS now uses Lua as their macro language. How amazing that today, if I was inventing UPRINT, as a side gig again, it would be in Lua!
     * Another system that uses Lua as its macro language, or meta language as they say, is [Terra]( https://terralang.org/). I would like to further explore that approach.
 5. Object Logo
