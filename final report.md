@@ -716,6 +716,7 @@ The following references highlight, in roughly chronological order, influences o
     * I'm delighted to see Excel get [lambdas](https://visualstudiomagazine.com/articles/2021/01/27/excel-lambda.aspx) in its formulae language and that there are signs that [Python](https://www.anaconda.com/blog/announcing-python-in-excel-next-level-data-analysis-for-all) might become an alternative to VBA one day. 
 8. Mathematica 
     * [Wolfram Language](https://reference.wolfram.com/language/?source=footer) as its known more recently
+    * the online documentation libary for MMA, if printed, would require another bookcase of its own
     * has what looks like a grammar of grammars, including [GrammarRules](https://reference.wolfram.com/language/guide/ProgrammableLinguisticInterface.html)  
     	* it would be interesting to get your take on it
     * MMA illustrates some very general ways of doing things
