@@ -72,6 +72,8 @@ function tozone(t)
       return z1[1]==z2[1] and z1[2]==z2[2] end,
     __lt = function(z1,z2) z1, z2 = convert(z1), convert(z2)
       return z1[1]<z2[1] end,
+    __pow = function(str,z2) z2 = convert(z2)
+      return string.rep(str,z2[1]) end,
     __tostring = function(z) return table.concat(z,":") end,
   })
 end
