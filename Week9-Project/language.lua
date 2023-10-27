@@ -175,6 +175,28 @@ local function foldBin(lst)
   return tree
 end
 
+-- concat 'expr's with pieces of string
+local function foldInterp2(lst)-- string with optional expressions embedded, optional external expressions
+  --log("\nlst=", pt.pt(lst))
+  if lst[1] == "" then table.remove(lst,1) end
+  if lst[#lst] == "" then table.remove(lst) end
+  --log("\nlst=", pt.pt(lst))
+  
+  local tofold = {}
+  for i = 1, #lst do
+    if type(lst[i]) == "table" then
+      table.insert(tofold, lst[i][1])
+      if i < #lst then table.insert(tofold, "~~") end
+    elseif 0 < #lst[i]  then
+      table.insert(tofold, {tag = "string", val = lst[i]})
+      if i < #lst then table.insert(tofold, "~~") end
+    end
+  end
+  --log("tofold", pt.pt(tofold))
+  
+  return foldBin(tofold)
+end
+
 -- transform string with interpolation expressions 
 -- e.g. "A {} with {} interpolations." <- "string" <- 1 + 1 ---> A string with 2 interpolations."
 --
@@ -233,12 +255,12 @@ local function foldInterp(lst)-- string with optional expressions embedded, opti
   for i = 2, #strings, 2 do
     if strings[i-1] ~='' then 
       s[#s+1] = {tag="string", val=strings[i-1]}
-      s[#s+1] = "|"
+      s[#s+1] = "~~"
     end
     s[#s+1] = exprs[i/2] 
-    s[#s+1] = "|"
+    s[#s+1] = "~~"
     s[#s+1] = {tag="string", val=strings[i]}
-    s[#s+1] = "|"
+    s[#s+1] = "~~"
   end
   table.remove(s,#s)
   --log("\ns", pt.pt(s))
@@ -443,10 +465,11 @@ local OB = P("{") * space      -- open braces
 local CB = P("}") * space      -- close braces
 
 -- operators from lowest to highest priority
-local opA = lpeg.C(
-            lpeg.S("+-~") * -#(lpeg.B("<")) * -#(lpeg.P(">")) -- enable <- <| <+ -> |> +> operators
-            )
-            * space  --binary left associative add, subract, concat (for zone)
+-- lpeg.S("+-~") * -#(lpeg.B("<")) * -#(lpeg.P(">"))  -- enable <- <| <+ -> |> +> etc operators
+local opA = lpeg.C( (lpeg.P"+" * -#(lpeg.S"+>") * -#(lpeg.B"<") )
+            + (lpeg.P"-" * -#(lpeg.S"->") * -#(lpeg.B"<") )
+            + (lpeg.P"~" * -#(lpeg.S"~>") * -#(lpeg.B"<") ) -- find e.g. s1 ~ s2
+            ) * space  --binary left associative add, subract, concat (for zone)
 local opI = lpeg.C(lpeg.P("<-")) * space   --binary left associative string interpolation
 local opM = lpeg.C(lpeg.S("*/%")) * space  --binary left assocociative multiply, divide, remainder
 local opZ = lpeg.C(P(":")) * space         --binary left associative zone
@@ -763,10 +786,15 @@ function GRAMMAR() end -- for IDE outline view
 local Ct = lpeg.Ct
 
 -- string pattern
-local open = lpeg.P('"')
-local close = -lpeg.B("\\") * open + open * -1 
-local strpat = open * lpeg.C((1 - close)^0) * close * space
-
+local open1 = lpeg.P('"') 
+local open2 = lpeg.P("'") 
+local close1 = -lpeg.B("\\") * open1 + open1 * -1 
+local close2 = -lpeg.B("\\") * open2 + open2 * -1 
+local text1 = lpeg.C((1 - (close1 + "`"))^0) 
+local text2 = lpeg.C((1 - (close2 + "`"))^0)
+local strpat = ( (open1 * text1 * close1 )
+               + (open2 * text2 * close2 ) 
+               ) * space
 
 local grammar = P{"prog",
   prog = space * Ct( (funcDecl + funcDefn)^1 ) / checkbodies * -1,
@@ -812,7 +840,9 @@ local grammar = P{"prog",
                   
   factor =  
         number  / tonumber / node("number","val")
-      + strpat / node("string", "val")  
+      + open1 * Ct((text1 * lpeg.P"`" * Ct(shortcctC) * lpeg.P"`" * text1)^0) * close1 * space / foldInterp2-- string interpolation 
+      + open2 * Ct((text2 * lpeg.P"`" * Ct(shortcctC) * lpeg.P"`" * text2)^0) * close2 * space / foldInterp2-- string interpolation 
+      + strpat / node("string", "val") 
       + T"(" * interp * T")" 
       + Ct(indexed_use * (T"[" * interp * T"]")^0) / foldIndexed_use 
       + T"nil"
@@ -829,7 +859,7 @@ local grammar = P{"prog",
   notty =  Ct(opPs^1 * relation) / foldPre  + relation,
   shortcctA = lpeg.Ct(notty * (opLand * notty)^0 ) / foldBin  * space,  
   shortcctO = lpeg.Ct(shortcctA * (opLor * shortcctA)^0 ) / foldBin  * space,  
-  shortcctC = lpeg.Ct(shortcctO * (lpeg.C("|") * space * shortcctO)^0 ) / foldBin  * space,  
+  shortcctC = lpeg.Ct(shortcctO * (lpeg.C("~~") * space * shortcctO)^0 ) / foldBin  * space,  
   interp = Ct(strpat / node("string", "val")  * (opI  * shortcctC)^1 ) / foldInterp  * space + shortcctC, 
   space = (lpeg.space + block_comment + comment)^0 * calc_maxp,
   
@@ -985,6 +1015,20 @@ local grammar = P{"prog",
       end
     end
   * space ,
+ 
+ --[[       log("----func_capture fwd_funcs=", id,  pt.pt(fwd_funcs))
+        log("--fwd_funcs_body=", pt.pt(fwd_funcs_body),"\n")
+        if fwd_funcs[id] == nil then          
+          fwd_funcs[id] = 1
+        elseif fwd_funcs[id] == 1 and #fwd_funcs_body[id] == 0 then
+          if not syntaxErr then M.report_syntax_error(s, p, "function ".."'"..id.."' is already forward declared\n") end       
+          return false
+        elseif 2 < fwd_funcs[id]  then
+          if not syntaxErr then M.report_syntax_error(s, p, "function ".."'"..id.."' is already defined\n") end       
+          return false
+        else
+          fwd_funcs[id] = fwd_funcs[id] + 1
+]]
   
   func_capture = #(ID * space * T"(") *     -- is name 
     function(s,p) pp = p; return true end * -- matchtime save ID position in pp
@@ -1089,7 +1133,7 @@ local Compiler = {funcs = {}, vars = {}, nvars = 0, locals = {}}
 -- left associative binary 
 local binOps = {
   ["<"] = "lt", [">"] = "gt", ["<="] = "le", [">="] = "ge", ["=="] = "eq", ["~="] = "ne", 
-  ["+"] = "add", ["-"] = "sub", ["~"] = "str", ["|"] = "con",
+  ["+"] = "add", ["-"] = "sub", ["~"] = "str", ["~~"] = "con",
   ["*"] = "mul", ["/"] = "div", ["%"] = "rem", 
   [":"] = "zone",
   ["<-"] = "interp",
@@ -1668,7 +1712,7 @@ local function run(code, mem, stack, top, options)
       pc = pc + 1
       local fname = code[pc]
       --log("executing library function " .. fname)
-      stack[top] = stack[top].size --TOOO: build this out to linking to my builtin functions
+      stack[top] = stack[top].size
     elseif code[pc] == "print" then 
       if not flag_print then -- newline first print instruction
         io.write("\n")
