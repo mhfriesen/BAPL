@@ -3,6 +3,64 @@ local factorial = base.factorial
 
 main_cases = {
 137,[[
+#{
+  where BAPL began with chapter 1-2 of PILua book Ex 2.1 ...
+  enhanced with 'forward function declaration', 'unless', 'string interpolation', 
+  and a royal athem
+}#
+
+function addqueen(rows_col, cur_row);
+
+function main () {
+  var N = 8;
+  print_first_soln_only = 1;
+  isa_soln_printed = 0; # to stop after printing first solution
+  var qs = new[N];
+  addqueen(qs,1);
+  return "God Save the Queen."
+}
+
+function isplaceok (rows_col, cur_row, col) {
+  for row = 1, cur_row - 1 { # for each queen already placed
+    var previous_queen_col = rows_col[row];
+    if (previous_queen_col == col or                    # same column
+       (previous_queen_col == col - cur_row + row) or   # same diagonal to left
+       (previous_queen_col == col + cur_row - row) ) {  # same diagonal to right
+        return 0
+    }
+  };
+  return 1
+}
+
+function printsolution (rows_col) {
+  var s = "\n";
+  for row = 1, array.len(rows_col) {
+    for col = 1, array.len(rows_col) {
+      #s = "{}{} "  <- s  <- (rows_col[row] == col and "X"  or  "_")
+      s = "`s``rows_col[row] == col and 'X'  or  '_'` " # latest `backticks` alternative (but, above still works too)
+    };
+    s = "{}\n" <- s;  
+  };
+  @ s
+}
+
+function addqueen(rows_col, cur_row) {
+  if cur_row > array.len(rows_col) {
+    printsolution(rows_col);
+    isa_soln_printed = 1
+  } else {
+    for col = 1, array.len(rows_col) {
+      if isplaceok(rows_col, cur_row, col) {
+        rows_col[cur_row] = col;
+        unless print_first_soln_only and isa_soln_printed {
+          addqueen(rows_col, cur_row + 1)
+        }
+      }
+    }
+  }
+}]]
+,
+136,[[
 function main() {
   xmin = -2.0;
   xmax = 1.0;
@@ -41,71 +99,17 @@ function main() {
   };
 }]]
 ,
-136,[[
-#{
-  where BAPL began with chapter 1-2 of PILua book Ex 2.1 ...
-  enhanced with 'forward function declaration', 'unless', 'string interpolation', 
-  and a royal athem
-}#
-
-function addqueen(rows_col, cur_row);
-
-function main () {
-  var N = 8;
-  print_first_soln_only = 1;
-  isa_soln_printed = 0; # to stop after printing first solution
-  var qs = new[N];
-  addqueen(qs,1);
-  return "God Save the Queen."
-}
-
-function isplaceok (rows_col, cur_row, col) {
-  for row = 1, cur_row - 1 { # for each queen already placed
-    var previous_queen_col = rows_col[row];
-    if (previous_queen_col == col or                    # same column
-       (previous_queen_col == col - cur_row + row) or   # same diagonal to left
-       (previous_queen_col == col + cur_row - row) ) {  # same diagonal to right
-        return 0
-    }
-  };
-  return 1
-}
-
-function printsolution (rows_col) {
-  var s = "\n";
-  for row = 1, array.len(rows_col) {
-    for col = 1, array.len(rows_col) {
-      s = "{}{} "  <- s  <- (rows_col[row] == col and "X"  or  "_")
-    };
-    s = s | "\n"  
-  };
-  @ s
-}
-
-function addqueen(rows_col, cur_row) {
-  if cur_row > array.len(rows_col) {
-    printsolution(rows_col);
-    isa_soln_printed = 1
-  } else {
-    for col = 1, array.len(rows_col) {
-      if isplaceok(rows_col, cur_row, col) {
-        rows_col[cur_row] = col;
-        unless print_first_soln_only and isa_soln_printed {
-          addqueen(rows_col, cur_row + 1)
-        }
-      }
-    }
-  }
-}]]
-,
 135,[[
-# composable string concat, trim, substr, length, and find
+# composable string concat, trim, substr, length, find, and repeat
+# string interpolation using 'backticks`
 function main () {
-  x = "bl" | "    string  " ~ 0:0 ~ 4:-1;
+  x = "bl" ~~ "    string  " ~ 0:0 ~ 4:-1;
   @ x;                      # zone type used for ranges
   @ ~x;
   @ "in" ~ x; # find gives zone
   @ "string" ~ (("in" ~ x) + 1);
+  c = "*";
+  @ c ^ (c ~ "     `c`indented")  # print as many c's as indent amt
 }]]
 ,
 134,[[
@@ -170,7 +174,7 @@ function main () {
   {
     var a = new[];        # associative array
     for i = 1, 5 {
-      a["k"|i] = i:(i^2)
+      a["k"~~i] = i:(i^2)
     };
     x, outer, z = a;      # associative destructuring
     @ outer;
@@ -186,8 +190,8 @@ function main () {
     for i = 1, 5 {
       var b = new[];
       for j = 1, 3 {
-        a["k"|i] = b;
-        a["k"|i]["j"|j] = i:j
+        a["k"~~i] = b;
+        a["k"~~i]["j"~~j] = i:j
       };
     };
     @ a["k3"]["j2"];
@@ -323,7 +327,7 @@ function main() {
   while i <= s {
     a[i][1] = i!;
     a[i][2] = i^2;
-    @ i | "! = " | a[i][1] | "    " | i | "^2 = " | a[i][2];
+    @ i ~~ "! = " ~~ a[i][1] ~~ "    " ~~ i ~~ "^2 = " ~~ a[i][2];
     i = i + 1
   };
   return "Yay"
@@ -503,7 +507,7 @@ function main () {
 prefunction_cases = {
 98,[[
 x=1; y="s";
-@ ("Here are {} interpolation{} \n with {} expressions"  <-  12 / 3! + x  <-  y <- "v" | "arious") | ", and a bit more." 
+@ ("Here are {} interpolation{} \n with {} expressions"  <-  12 / 3! + x  <-  y <- "v" ~~ "arious") ~~ ", and a bit more." 
 ]]
 ,
 97,[[
@@ -548,11 +552,11 @@ return a[2][3] ]]
 90,[[
 a = new[4][3];
 a[3][3] = 9;
-@ "oooo... string type" | " so we can say we got to line " | (2 + 1);
+@ "oooo... string type" ~~ " so we can say we got to line " ~~ (2 + 1);
 a[3][5] = 9999;
 @ "wish we got this far"]]
 ,
-89,[[@ "mind those runtime errors" | 2 + 1]]
+89,[[@ "mind those runtime errors" ~~ 2 + 1]]
 ,
 88,[[
 a = new[4][3];
@@ -777,9 +781,9 @@ primodial_cases = {
    "2:3-2:3",
    "2:3- -2:3",
    "2:3-(2-4):3",
-   "2:3|5:8",
-   "2| 15",
-   "-0X02| 15",
+   "2:3~~5:8",
+   "2~~ 15",
+   "-0X02~~ 15",
    "-.1:0.2  - -0.2:.3",
    "-(-.1:0.2  - -0.2:.3)",
    "-0X02:0xff + 2e10-2e1",
