@@ -4,78 +4,80 @@ BAPL is the acronym of the course [Build A Programming  Language](https://classp
 
 My language recursed when, in **Week 8**, it redid *8 Queens Ex 2.1 of Programming In Lua*, the homework of **Week 1**. It was a refreshing experience since my language added a few nice touches: 'forward function declaration', 'unless', 'string interpolation', and for good measure, a royal anthem. 
 
-    PROGRAM ----------------------------- 136 ------------------------------
-    001 #{
-    002   where BAPL began with chapter 1-2 of PILua book Ex 2.1 ...
-    003   enhanced with 'forward function declaration', 'unless', 'string interpolation', 
-    004   and a royal athem
-    005 }#
-    006 
-    007 function addqueen(rows_col, cur_row);
-    008 
-    009 function main () {
-    010   var N = 8;
-    011   print_first_soln_only = 1;
-    012   isa_soln_printed = 0; # to stop after printing first solution
-    013   var qs = new[N];
-    014   addqueen(qs,1);
-    015   return "God Save the Queen."
-    016 }
-    017 
-    018 function isplaceok (rows_col, cur_row, col) {
-    019   for row = 1, cur_row - 1 { # for each queen already placed
-    020     var previous_queen_col = rows_col[row];
-    021     if (previous_queen_col == col or                    # same column
-    022        (previous_queen_col == col - cur_row + row) or   # same diagonal to left
-    023        (previous_queen_col == col + cur_row - row) ) {  # same diagonal to right
-    024         return 0
-    025     }
-    026   };
-    027   return 1
-    028 }
-    029 
-    030 function printsolution (rows_col) {
-    031   var s = "\n";
-    032   for row = 1, array.len(rows_col) {
-    033     for col = 1, array.len(rows_col) {
-    034       s = "{}{} "  <- s  <- (rows_col[row] == col and "X"  or  "_")
-    035     };
-    036     s = s | "\n"  
-    037   };
-    038   @ s
-    039 }
-    040 
-    041 function addqueen(rows_col, cur_row) {
-    042   if cur_row > array.len(rows_col) {
-    043     printsolution(rows_col);
-    044     isa_soln_printed = 1
-    045   } else {
-    046     for col = 1, array.len(rows_col) {
-    047       if isplaceok(rows_col, cur_row, col) {
-    048         rows_col[cur_row] = col;
-    049         unless print_first_soln_only and isa_soln_printed {
-    050           addqueen(rows_col, cur_row + 1)
-    051         }
-    052       }
-    053     }
-    054   }
-    055 }
-    
-    
-    printing: 
-    X _ _ _ _ _ _ _ 
-    _ _ _ _ X _ _ _ 
-    _ _ _ _ _ _ _ X 
-    _ _ _ _ _ X _ _ 
-    _ _ X _ _ _ _ _ 
-    _ _ _ _ _ _ X _ 
-    _ X _ _ _ _ _ _ 
-    _ _ _ X _ _ _ _ 
-    
-    
-    --->God Save the Queen.
+	PROGRAM ----------------------------- 137 ------------------------------
+	001 #{
+	002   where BAPL began with chapter 1-2 of PILua book Ex 2.1 ...
+	003   enhanced with 'forward function declaration', 'unless', 'string interpolation', 
+	004   and a royal athem
+	005 }#
+	006 
+	007 function addqueen(rows_col, cur_row);
+	008 
+	009 function main () {
+	010   var N = 8;
+	011   print_first_soln_only = 1;
+	012   isa_soln_printed = 0; # to stop after printing first solution
+	013   var qs = new[N];
+	014   addqueen(qs,1);
+	015   return "God Save the Queen."
+	016 }
+	017 
+	018 function isplaceok (rows_col, cur_row, col) {
+	019   for row = 1, cur_row - 1 { # for each queen already placed
+	020     var previous_queen_col = rows_col[row];
+	021     if (previous_queen_col == col or                    # same column
+	022        (previous_queen_col == col - cur_row + row) or   # same diagonal to left
+	023        (previous_queen_col == col + cur_row - row) ) {  # same diagonal to right
+	024         return 0
+	025     }
+	026   };
+	027   return 1
+	028 }
+	029 
+	030 function printsolution (rows_col) {
+	031   var s = "\n";
+	032   for row = 1, array.len(rows_col) {
+	033     for col = 1, array.len(rows_col) {
+	034       #s = "{}{} "  <- s  <- (rows_col[row] == col and "X"  or  "_")
+	035       s = "`s``rows_col[row] == col and 'X'  or  '_'` " # latest `backticks` alternative (but, above still works too)
+	036     };
+	037     s = "{}\n" <- s;  
+	038   };
+	039   @ s
+	040 }
+	041 
+	042 function addqueen(rows_col, cur_row) {
+	043   if cur_row > array.len(rows_col) {
+	044     printsolution(rows_col);
+	045     isa_soln_printed = 1
+	046   } else {
+	047     for col = 1, array.len(rows_col) {
+	048       if isplaceok(rows_col, cur_row, col) {
+	049         rows_col[cur_row] = col;
+	050         unless print_first_soln_only and isa_soln_printed {
+	051           addqueen(rows_col, cur_row + 1)
+	052         }
+	053       }
+	054     }
+	055   }
+	056 }
+	
+	
+	printing: 
+	X _ _ _ _ _ _ _ 
+	_ _ _ _ X _ _ _ 
+	_ _ _ _ _ _ _ X 
+	_ _ _ _ _ X _ _ 
+	_ _ X _ _ _ _ _ 
+	_ _ _ _ _ _ X _ 
+	_ X _ _ _ _ _ _ 
+	_ _ _ X _ _ _ _ 
+	
+	
+	--->God Save the Queen.
 
-Test cases, from 1 to 136 seen above, tell the story of what was for me a wonderful journey of creating a programmming language from the "ground up", although of course it was really from "standing on the shoulders of giants". It is hard for me to imagine a better way to experience this than what was provided by the course. 
+
+Test cases, from 1 to 137 seen above, tell the story of what was for me a wonderful journey of creating a programmming language from the "ground up", although of course it was really from "standing on the shoulders of giants". It is hard for me to imagine a better way to experience this than what was provided by the course. 
 ## Language Syntax
 
 The overall syntax of my language follows Selene, the language developed in the course.   
@@ -321,7 +323,7 @@ Detailed examples of all the features described below are given in the 136 test 
                 * can be great, but context plays a role in the effectiveness  
     * concat, substr, trim, length, find  
         * concat was done first using '|'   
-            * given the discussion above, I plan to revise it to '~~'  
+            * given the discussion above I revised it to '~~'  
         * substr, trim  
             * e.g. "  mystring " ~ 0:0 ~ 5:-1; gives "ring"  
                 * a 0 in the zone denotes trim (just one or both ends can be impacted)  
@@ -329,31 +331,37 @@ Detailed examples of all the features described below are given in the 136 test 
         * length  
             * unary '\~'  
             * e.g. ~ "string" gives 6  
-        * find  
+        * find
+            * str ~ str   
             * "in" ~ "string" gives 4:5   
             * returning a zone enables further composition  
+        * repeat str ^ zone  
+            * "*" ^ 5:5 gives *****
+            * c ^ (c ~ "     `c`indented") --> *****
     * embedded escape codes  
         * replaced frequently used escapes e.g \t \n  
         * next step would be pattern matching and replacement of escapes in general  
     * strings were great for debugging and ended up being essential for the 8 Queens re-exercise
 #  
-    PROGRAM ----------------------------- 135 ------------------------------  
-    001 # composable string concat, trim, substr, length, and find  
-    002 function main () {  
-    003   x = "bl" | "    string  " ~ 0:0 ~ 4:-1;  
-    004                               # zone type used for ranges  
-    005   @ x;  
-    006   @ ~x;  
-    007   @ "in" ~ x; # find gives zone  
-    008   @ "string" ~ (("in" ~ x) + 1);  
-    009 }  
-      
-    printing: bling  
-    printing: 5  
-    printing: 3:4  
-    printing: in  
-      
-    --->0  
+	PROGRAM ----------------------------- 135 ------------------------------
+	001 # composable string concat, trim, substr, length, find, and repeat
+	002 # string interpolation using 'backticks`
+	003 function main () {
+	004   x = "bl" ~~ "    string  " ~ 0:0 ~ 4:-1;
+	005   @ x;                      # zone type used for ranges
+	006   @ ~x;
+	007   @ "in" ~ x; # find gives zone
+	008   @ "string" ~ (("in" ~ x) + 1);
+	009   c = "*";
+	010   @ c ^ (c ~ "     `c`indented")  # print as many c's as indent amt
+	011 }
+	
+	printing: bling
+	printing: 5
+	printing: 3:4
+	printing: in
+	printing: ******
+
 12. unless  
     * this was like 'while' and improved my understanding of jumps
     * it showed how easy it is to add new features using previous proven patterns
@@ -554,6 +562,8 @@ In this self assessment of my project: for each criteria described for the final
                     * familar string '~' operator; wait for it ... concatenated
                 * length
                     * familar '~' operator resued in unary form
+                * repeat
+                    * enables more composing using zone
                 * limitations: need to bullet proof responses to malformed zones
              * interpolation
                 * flexibility of expression layout (on next line and multiple next line etc) 
@@ -565,7 +575,8 @@ In this self assessment of my project: for each criteria described for the final
 			* after filling slots, remaining expressions are used to fill slots in the previously composed string
 			* " " ~ s (find space in s) returns a zone
 			* ^ (repeat string) would be designed to work with zone
-
+                * flexibility increased by also giving a 'backticks` alternative
+                    * use the one that feels comfortable 
         * destructuring
             * works with arrays, associated arrays, and zones
             * also works at higher dimensions
