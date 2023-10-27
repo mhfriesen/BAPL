@@ -559,7 +559,13 @@ In this self assessment of my project: for each criteria described for the final
                 * flexibility of expression layout (on next line and multiple next line etc) 
                 * for complex expressions retains big picture of desired string structure
                 * safe in presence of too few or many expressions
-                    * debatable about how to best handle these situations
+		    * debatable about how to best handle these situations
+			* example of a more composable design (using '~~' for concat and '^' for repetition:
+			* s = "{}{} " <-  s  <-  " "^(" " ~ s) ~~ "{}"  <-  name;
+			* after filling slots, remaining expressions are used to fill slots in the previously composed string
+			* " " ~ s (find space in s) returns a zone
+			* ^ (repeat string) would be designed to work with zone
+
         * destructuring
             * works with arrays, associated arrays, and zones
             * also works at higher dimensions
